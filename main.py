@@ -31,17 +31,13 @@ def data():
 
     return "OK", 200
 
-@app.route("/temperature")
-def get_temperature():
-    return jsonify({"temperature": temperature})
-
-@app.route("/humidity")
-def get_humidity():
-    return jsonify({"humidity": humidity})
-    
-@app.route("/emergency")
-def get_emergency():
-    return jsonify({"emergency": emergency})
+@app.route("/status")
+def status():
+    return jsonify({
+        "temperature": temperature,
+        "humidity": humidity,
+        "emergency": emergency
+    })
     
 @app.route("/logs")
 def get_logs():
