@@ -6,6 +6,7 @@ app = Flask(__name__)
 temperature = 0
 humidity = 0
 emergency = 0
+logs = []
 
 @app.route("/")
 def home():
