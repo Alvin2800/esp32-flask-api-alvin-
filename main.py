@@ -38,7 +38,7 @@ def get_humidity():
     
 @app.route("/emergency")
 def get_emergency():
-    return jsonify({"Emergency": emergency})
+    return jsonify({"emergency": emergency})
     
 @app.route("/logs")
 def get_logs():
