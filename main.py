@@ -4,8 +4,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# =========================
+# INIT DATABASE
+# =========================
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("database.db", check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -23,8 +26,11 @@ def init_db():
 
 init_db()
 
+# =========================
+# INSERT DATA
+# =========================
 def insert_data(timestamp, temperature, humidity, emergency):
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("database.db", check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -35,9 +41,16 @@ def insert_data(timestamp, temperature, humidity, emergency):
     conn.commit()
     conn.close()
 
+# =========================
+# VARIABLES TEMPS REEL
+# =========================
 temperature = 0.0
 humidity = 0.0
 emergency = 0
+
+# =========================
+# ROUTES
+# =========================
 
 @app.route("/")
 def home():
@@ -51,21 +64,16 @@ def data():
     humidity = float(request.args.get("hum", 0))
     emergency = int(request.args.get("emergency", 0))
 
-    log_entry = {
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    insert_data(timestamp, temperature, humidity, emergency)
+
+    print("Données reçues :", {
+        "timestamp": timestamp,
         "temperature": temperature,
         "humidity": humidity,
         "emergency": emergency
-    }
-
-    insert_data(
-        log_entry["timestamp"],
-        log_entry["temperature"],
-        log_entry["humidity"],
-        log_entry["emergency"]
-    )
-
-    print("Données reçues :", log_entry, flush=True)
+    }, flush=True)
 
     return "OK", 200
 
@@ -79,7 +87,7 @@ def status():
 
 @app.route("/logs")
 def get_logs():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("database.db", check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -102,5 +110,8 @@ def get_logs():
 
     return jsonify(logs)
 
+# =========================
+# LOCAL RUN (OPTIONNEL)
+# =========================
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)logs)
+    app.run(host="0.0.0.0", port=5000)
