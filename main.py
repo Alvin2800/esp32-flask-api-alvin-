@@ -51,7 +51,7 @@ emergency = 0
 # =========================
 # ROUTES
 # =========================
-
+try:
 @app.route("/")
 def home():
     return "IoT API Alvin Running"
@@ -115,3 +115,5 @@ def get_logs():
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+except Exception as e:
+    print(f"Erreur /data : {e}")
