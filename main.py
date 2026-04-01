@@ -51,7 +51,6 @@ emergency = 0
 # =========================
 # ROUTES
 # =========================
-try:
 @app.route("/")
 def home():
     return "IoT API Alvin Running"
@@ -60,60 +59,72 @@ def home():
 def data():
     global temperature, humidity, emergency
 
-    temperature = float(request.args.get("temp", 0))
-    humidity = float(request.args.get("hum", 0))
-    emergency = int(request.args.get("emergency", 0))
+    try:
+        temperature = float(request.args.get("temp", 0))
+        humidity = float(request.args.get("hum", 0))
+        emergency = int(request.args.get("emergency", 0))
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    insert_data(timestamp, temperature, humidity, emergency)
+        insert_data(timestamp, temperature, humidity, emergency)
 
-    print("Données reçues :", {
-        "timestamp": timestamp,
-        "temperature": temperature,
-        "humidity": humidity,
-        "emergency": emergency
-    }, flush=True)
+        print("Données reçues :", {
+            "timestamp": timestamp,
+            "temperature": temperature,
+            "humidity": humidity,
+            "emergency": emergency
+        }, flush=True)
 
-    return "OK", 200
+        return "OK", 200
+
+    except Exception as e:
+        print(f"Erreur /data : {e}", flush=True)
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/status")
 def status():
-    return jsonify({
-        "temperature": temperature,
-        "humidity": humidity,
-        "emergency": emergency
-    })
+    try:
+        return jsonify({
+            "temperature": temperature,
+            "humidity": humidity,
+            "emergency": emergency
+        })
+    except Exception as e:
+        print(f"Erreur /status : {e}", flush=True)
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/logs")
 def get_logs():
-    conn = sqlite3.connect("database.db", check_same_thread=False)
-    cursor = conn.cursor()
+    try:
+        conn = sqlite3.connect("database.db", check_same_thread=False)
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT timestamp, temperature, humidity, emergency
-        FROM measurements
-        ORDER BY id DESC
-    """)
+        cursor.execute("""
+            SELECT timestamp, temperature, humidity, emergency
+            FROM measurements
+            ORDER BY id DESC
+        """)
 
-    rows = cursor.fetchall()
-    conn.close()
+        rows = cursor.fetchall()
+        conn.close()
 
-    logs = []
-    for row in rows:
-        logs.append({
-            "timestamp": row[0],
-            "temperature": row[1],
-            "humidity": row[2],
-            "emergency": row[3]
-        })
+        logs = []
+        for row in rows:
+            logs.append({
+                "timestamp": row[0],
+                "temperature": row[1],
+                "humidity": row[2],
+                "emergency": row[3]
+            })
 
-    return jsonify(logs)
+        return jsonify(logs)
+
+    except Exception as e:
+        print(f"Erreur /logs : {e}", flush=True)
+        return jsonify({"error": str(e)}), 500
 
 # =========================
 # LOCAL RUN (OPTIONNEL)
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-except Exception as e:
-    print(f"Erreur /data : {e}")
