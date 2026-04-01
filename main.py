@@ -103,8 +103,4 @@ def get_logs():
     return jsonify(logs)
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
-
-@app.route("/logs")
-def get_logs():
-    return jsonify(logs)
+    app.run(host="127.0.0.1", port=5000, debug=True)logs)
