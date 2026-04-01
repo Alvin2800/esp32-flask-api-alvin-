@@ -1,14 +1,19 @@
 from flask import Flask, request, jsonify
 import sqlite3
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 
-# =========================
-# INIT DATABASE
-# =========================
+DB_PATH = "database.db"
+
+
+def get_db_connection():
+    return sqlite3.connect(DB_PATH)
+
+
 def init_db():
-    conn = sqlite3.connect("database.db", check_same_thread=False)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -24,13 +29,12 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 init_db()
 
-# =========================
-# INSERT DATA
-# =========================
+
 def insert_data(timestamp, temperature, humidity, emergency):
-    conn = sqlite3.connect("database.db", check_same_thread=False)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -41,19 +45,16 @@ def insert_data(timestamp, temperature, humidity, emergency):
     conn.commit()
     conn.close()
 
-# =========================
-# VARIABLES TEMPS REEL
-# =========================
+
 temperature = 0.0
 humidity = 0.0
 emergency = 0
 
-# =========================
-# ROUTES
-# =========================
+
 @app.route("/")
 def home():
-    return "IoT API Alvin Running"
+    return "IoT API Alvin Running", 200
+
 
 @app.route("/data")
 def data():
@@ -68,18 +69,20 @@ def data():
 
         insert_data(timestamp, temperature, humidity, emergency)
 
-        print("Données reçues :", {
+        payload = {
             "timestamp": timestamp,
             "temperature": temperature,
             "humidity": humidity,
             "emergency": emergency
-        }, flush=True)
+        }
 
+        print("Données reçues :", payload, flush=True)
         return "OK", 200
 
     except Exception as e:
         print(f"Erreur /data : {e}", flush=True)
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/status")
 def status():
@@ -93,10 +96,11 @@ def status():
         print(f"Erreur /status : {e}", flush=True)
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/logs")
 def get_logs():
     try:
-        conn = sqlite3.connect("database.db", check_same_thread=False)
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -123,8 +127,7 @@ def get_logs():
         print(f"Erreur /logs : {e}", flush=True)
         return jsonify({"error": str(e)}), 500
 
-# =========================
-# LOCAL RUN (OPTIONNEL)
-# =========================
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
